@@ -2,11 +2,22 @@
 
     import graphlab
 
+# 6 Degrees of Bureaucracy - LADWP
+
+In this notebook we'll use the Dato GraphLab toolkit to explore LA’s Department of Water and Power projects between 2007 and 2016.  The purpose of this is to find the “Kevin Bacon” of the organization. See Kevin Bacon game.
+https://en.wikipedia.org/wiki/Six_Degrees_of_Kevin_Bacon
+
+We will also create a tool that estimates one’s proximity to DWP’s “Kevin Bacon” for any given employee. It is a great way to understand key influencers in your organization.
+
+## Set up and exploratory data analysis
+
+Before we start playing with the data, we need to import some key libraries: graphlab of course, and IPython display utilities. We also tell IPython notebook and GraphLab Canvas to produce plots directly in this notebook.
+
 
     from IPython.display import display
-
-
     from IPython.display import Image
+
+Our curated data live in an Amazon S3 bucket, from which we could create an SFrame directly, but for this demo we'll first download the CSV file and save it locally. Please note that running this notebook on your machine will download the 8MB csv file to your working directory.
 
 
     graphlab.canvas.set_target('ipynb')
@@ -31,82 +42,20 @@
 
 
 
-    data.rename({'empl':'actor_name'})
+    data['weight'] = .5
+    data.show()
 
 
 
 
-<div style="max-height:1000px;max-width:1500px;overflow:auto;"><table frame="box" rules="cols">
-    <tr>
-        <th style="padding-left: 1em; padding-right: 1em; text-align: center">id</th>
-        <th style="padding-left: 1em; padding-right: 1em; text-align: center">actor_name</th>
-        <th style="padding-left: 1em; padding-right: 1em; text-align: center">character</th>
-        <th style="padding-left: 1em; padding-right: 1em; text-align: center">film_name</th>
-    </tr>
-    <tr>
-        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">0</td>
-        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">9901</td>
-        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Adam Riley</td>
-        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">600353</td>
-    </tr>
-    <tr>
-        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">1</td>
-        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">9901</td>
-        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Captain' Robert Jackson</td>
-        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">900984</td>
-    </tr>
-    <tr>
-        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">2</td>
-        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">9901</td>
-        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Jacob Krause</td>
-        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">104113</td>
-    </tr>
-    <tr>
-        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">3</td>
-        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">9901</td>
-        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Carissa</td>
-        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">104113</td>
-    </tr>
-    <tr>
-        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">4</td>
-        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">9901</td>
-        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Commander Fredericks</td>
-        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">103934</td>
-    </tr>
-    <tr>
-        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">5</td>
-        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">9901</td>
-        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Peter McCollum</td>
-        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">104180</td>
-    </tr>
-    <tr>
-        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">6</td>
-        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">9901</td>
-        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Charles Baker</td>
-        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">104558</td>
-    </tr>
-    <tr>
-        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">7</td>
-        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">9901</td>
-        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Global Chairman</td>
-        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">104552</td>
-    </tr>
-    <tr>
-        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">8</td>
-        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">9901</td>
-        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">President of the United<br>States ...</td>
-        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">104636</td>
-    </tr>
-    <tr>
-        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">9</td>
-        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">9901</td>
-        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Audrey Thomas</td>
-        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">600353</td>
-    </tr>
-</table>
-[324352 rows x 4 columns]<br/>Note: Only the head of the SFrame is printed.<br/>You can use print_rows(num_rows=m, num_columns=n) to print more rows and columns.
-</div>
+    print "**data overview**"
+    display(Image(url='https://s3.amazonaws.com/180data/Screenshot+2016-03-29+22.23.16.png'))
 
+    **data overview**
+
+
+
+<img src="https://s3.amazonaws.com/180data/Screenshot+2016-03-29+22.23.16.png"/>
 
 
 
@@ -181,7 +130,7 @@
     
     Metrics
     -------
-    training time (secs)                    : 0.2497
+    training time (secs)                    : 0.5146
     
     Queryable Fields
     ----------------
@@ -230,6 +179,40 @@
 
 
 
+Below is the graph viz for employee 10181.
+
+
+    print "**10181**"
+    display(Image(url='https://s3.amazonaws.com/180data/Screenshot+2016-03-29+21.55.55.png'))
+
+    **10181**
+
+
+
+<img src="https://s3.amazonaws.com/180data/Screenshot+2016-03-29+21.55.55.png"/>
+
+
+
+    bacon_filmss = g.get_edges(src_ids=['9591'])
+    
+    subgraph = graphlab.SGraph()
+    subgraph = subgraph.add_edges(bacon_filmss, src_field='__src_id',
+                                  dst_field='__dst_id')
+    subgraph.show(vlabel='id', highlight=['9591'])
+
+
+
+
+    print "**9591**"
+    display(Image(url='https://s3.amazonaws.com/180data/Screenshot+2016-03-29+22.11.12.png'))
+
+    **9591**
+
+
+
+<img src="https://s3.amazonaws.com/180data/Screenshot+2016-03-29+22.11.12.png"/>
+
+
 
     subgraph = graphlab.SGraph()
     
@@ -240,6 +223,8 @@
     subgraph.show(highlight=list(bacon_films['__dst_id']), vlabel='__id', vlabel_hover=True)
 
 
+
+# Comparing Connections with Other Employees
 
 
     def count_in_degree(src, edge, dst):
@@ -254,7 +239,7 @@
     degree = get_degree(g)
 
 
-    comparisons = ['10181', '9901']
+    comparisons = ['10181', '9591','10416']
     degree.filter_by(comparisons, '__id').sort('in_degree', ascending=False)
 
 
@@ -266,18 +251,24 @@
         <th style="padding-left: 1em; padding-right: 1em; text-align: center">in_degree</th>
     </tr>
     <tr>
-        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">9901</td>
-        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">393</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">9591</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">550</td>
     </tr>
     <tr>
         <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">10181</td>
         <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">97</td>
     </tr>
+    <tr>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">10416</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">10</td>
+    </tr>
 </table>
-[2 rows x 2 columns]<br/>
+[3 rows x 2 columns]<br/>
 </div>
 
 
+
+## Empl 9591 has the highest degree connections
 
 
     actor_degree = degree.filter_by(actors, '__id')
@@ -341,6 +332,109 @@
 </div>
 
 
+
+
+    sp = graphlab.shortest_path.create(g, source_vid='10181', weight_field='weight', verbose=False)
+
+
+    sp_graph = sp['graph']
+
+
+    query = sp_graph.get_vertices(ids=['9591','10181','10416','6428','6326'])
+    query.head()
+
+
+
+
+<div style="max-height:1000px;max-width:1500px;overflow:auto;"><table frame="box" rules="cols">
+    <tr>
+        <th style="padding-left: 1em; padding-right: 1em; text-align: center">__id</th>
+        <th style="padding-left: 1em; padding-right: 1em; text-align: center">distance</th>
+    </tr>
+    <tr>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">6326</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">1.0</td>
+    </tr>
+    <tr>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">9591</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">1.0</td>
+    </tr>
+    <tr>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">10416</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">1.0</td>
+    </tr>
+    <tr>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">6428</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">1.0</td>
+    </tr>
+    <tr>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">10181</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">0.0</td>
+    </tr>
+</table>
+[5 rows x 2 columns]<br/>
+</div>
+
+
+
+
+    big_label = cc_size['component_id'][0]
+    big_names = cc_out[cc_out['component_id'] == big_label]
+    mainstream_actors = big_names.filter_by(actors, column_name='__id')['__id']
+
+
+    bacon_sf = sp_graph.get_vertices(ids=mainstream_actors)
+    bacon_sf['distance'].show()
+
+
+
+Where there is some approximation in the quantiles shown in the quantile histogram, it's clear that the modal distance from DWP's kevin bacon is 1 hop, with 99% of the nodes falling between 1 and 2 hops.
+
+
+    print "**Histogram of Modal Distances**"
+    display(Image(url='https://s3.amazonaws.com/180data/Screenshot+2016-03-29+22.38.08.png'))
+
+    **Histogram of Modal Distances**
+
+
+
+<img src="https://s3.amazonaws.com/180data/Screenshot+2016-03-29+22.38.08.png"/>
+
+
+
+    # # Make a container for the centrality statistics
+    mean_dists = {}
+    
+    # # Get statistics for Kevin Bacon - use the already computed KB shortest paths
+    mean_dists['10181'] = bacon_sf['distance'].mean()
+    
+    
+    ## Get statistics for the other comparison actors
+    for person in comparisons[1:]:
+    
+        # get single-source shortest paths
+        sp2 = graphlab.shortest_path.create(g, source_vid=person,
+                                            weight_field='weight',
+                                            verbose=False)
+        sp2_graph = sp2.get('graph')
+        sp2_out = sp2_graph.get_vertices(ids=mainstream_actors)
+    
+        # Compute some statistics about the distribution of distances
+        mean_dists[person] = sp2_out['distance'].mean()
+
+
+    mean_dists
+
+
+
+
+    {'10181': 1.396840148698885,
+     '10416': 1.4990706319702605,
+     '9591': 1.3906443618339528}
+
+
+
+Once again, empl 9591 comes out ahead, with the smallest mean distance to all other network nodes. Let's take a look at the whole distribution of shortest path distances for him.
 
 
     
